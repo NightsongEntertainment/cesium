@@ -43,7 +43,6 @@ define([
         deprecationWarning,
         destroyObject,
         DeveloperError,
-        GeometryInstance,
         isArray,
         CesiumMath,
         Matrix3,
@@ -150,10 +149,6 @@ define([
     function GroundPrimitive(options) {
         options = defaultValue(options, defaultValue.EMPTY_OBJECT);
 
-        if (defined(options.geometryInstance)) {
-            deprecationWarning('GroundPrimitive.geometryInstance', 'GroundPrimitive.geometryInstance is deprecated in version 1.18 and will be removed in version 1.20. Please use GroundPrimitive.geometryInstances.');
-        }
-
         /**
          * The geometry instance rendered with this primitive.  This may
          * be <code>undefined</code> if <code>options.releaseGeometryInstances</code>
@@ -168,7 +163,6 @@ define([
          *
          * @deprecated
          */
-        this.geometryInstance = options.geometryInstance;
         /**
          * The geometry instance rendered with this primitive.  This may
          * be <code>undefined</code> if <code>options.releaseGeometryInstances</code>
@@ -824,7 +818,7 @@ define([
      */
     GroundPrimitive.prototype.update = function(frameState) {
         var context = frameState.context;
-        if (!context.fragmentDepth || !this.show || (!defined(this._primitive) && !defined(this.geometryInstance) && !defined(this.geometryInstances))) {
+        if (!context.fragmentDepth || !this.show || (!defined(this._primitive) && !defined(this.geometryInstances))) {
             return;
         }
 
@@ -842,22 +836,6 @@ define([
             var geometry;
             var instanceType;
 
-            if (defined(this.geometryInstance)) {
-                instance = this.geometryInstance;
-                geometry = instance.geometry;
-
-                instanceType = geometry.constructor;
-                if (defined(instanceType) && defined(instanceType.createShadowVolume)) {
-                    instance = new GeometryInstance({
-                        geometry : instanceType.createShadowVolume(geometry, computeMinimumHeight, computeMaximumHeight),
-                        attributes : instance.attributes,
-                        id : instance.id,
-                        pickPrimitive : this
-                    });
-                }
-
-                primitiveOptions.geometryInstances = instance;
-            } else {
                 var instances = isArray(this.geometryInstances) ? this.geometryInstances : [this.geometryInstances];
                 var length = instances.length;
                 var groundInstances = new Array(length);
@@ -892,7 +870,7 @@ define([
                 }
 
                 primitiveOptions.geometryInstances = groundInstances;
-            }
+            
 
             var that = this;
             primitiveOptions._createBoundingVolumeFunction = function(frameState, geometry) {
@@ -916,7 +894,7 @@ define([
                 that._ready = true;
 
                 if (that.releaseGeometryInstances) {
-                    that.geometryInstance = undefined;
+                   
                     that.geometryInstances = undefined;
                 }
 
